@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Validation\Rule;
 
@@ -18,14 +19,34 @@ class AuthController extends Controller
         $validate = Validator::make($registationData, [
             'name' => 'required|max:60',
             'email' => 'required|email:rfc,dns|unique:users',
-            'password' => 'required',
-            'no_telp' => 'required',
+            'password' => 'required|min:8',
+            'no_telp' => 'required|numeric|digits_between:11,13',
+            'image' => 'required|image|mimes:jpeg,png,jpg|max:2048',
         ]);
         if ($validate->fails()) {
             return response(['message' => $validate->errors()], 400);
         }
         $registationData['status'] = 0;
         $registationData['password'] = bcrypt($request->password);
+
+        //upload image
+        $image_path = $request->file('image')->store('image', 'public');
+        $registationData['image'] = $image_path;
+
+        //create ID logic
+        $year = date('y');
+        $month = date('m');
+        $query = "$year.$month%";
+        //check last id in this month. if not found return null
+        $lastId = DB::table('users')->where('id', 'like', $query)->orderBy('id', 'desc')->first()->id ?? null;
+        if ($lastId) {
+            $parts = explode('.', $lastId);
+            $idToIncement = end($parts);
+            $index = intval($idToIncement) + 1;
+            $registationData['id'] = "$year.$month.$index";
+        } else {
+            $registationData['id'] = "$year.$month.1";
+        }
 
         $user = User::create($registationData);
 

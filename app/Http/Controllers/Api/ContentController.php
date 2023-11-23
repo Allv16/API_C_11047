@@ -44,6 +44,7 @@ class ContentController extends Controller
             'released_year' => 'required',
             'genre' => 'required',
             'type' => 'required',
+            'type' => 'required|in:Free,Paid',
         ]);
         if ($validate->fails())
             return response(['message' => $validate->errors()], 400);
@@ -93,12 +94,12 @@ class ContentController extends Controller
                 'data' => null
             ], 404);
         }
-
+        dd($updateData);
         $validate = Validator::make($updateData, [
             'title' => 'required|max:60',
             'released_year' => 'required',
             'genre' => 'required',
-            'type' => 'required',
+            'type' => 'required|in:Free,Paid',
         ]);
         if ($validate->fails())
             return response(['message' => $validate->errors()], 400);

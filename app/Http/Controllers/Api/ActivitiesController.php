@@ -46,7 +46,6 @@ class ActivitiesController extends Controller
         $validate = Validator::make($storeData, [
             'id_user' => 'required',
             'id_content' => 'required',
-            'accessed_at' => 'required|date',
         ]);
         if ($validate->fails())
             return response(['message' => $validate->errors()], 400);
@@ -64,6 +63,12 @@ class ActivitiesController extends Controller
                 'message' => 'Content Not Found',
             ], 400);
         }
+
+        if ($user->status == 0 && $content->type == 'Paid') {
+            return response(['message' => 'User account not yet active, please activated the account before accessing paid content'], 400);
+        }
+
+        $storeData['accessed_at'] = date('Y-m-d H:i:s');
 
         $activities = Activities::create($storeData);
         return response([
@@ -128,10 +133,13 @@ class ActivitiesController extends Controller
         if (!$content) {
             return response(['message' => 'Content not found'], 404);
         }
+        if ($user->status == 0 && $content->type == 'Paid') {
+            return response(['message' => 'User account not yet active, please activated the account before accessing paid content'], 400);
+        }
 
-        $activities->user_id = $updateData['id_user'];
-        $activities->content_id = $updateData['id_content'];
-        $activities->accessed_at = $updateData['accessed_at'];
+        $activities->id_user = $updateData['id_user'];
+        $activities->id_content = $updateData['id_content'];
+        $activities->accessed_at = date('Y-m-d H:i:s');
 
         if ($activities->save()) {
             return response([

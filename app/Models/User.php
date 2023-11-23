@@ -20,11 +20,13 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $fillable = [
+        'id',
         'name',
         'email',
         'password',
         'no_telp',
         'status',
+        'image',
     ];
 
     /**
@@ -36,6 +38,8 @@ class User extends Authenticatable
         'password',
         'remember_token',
     ];
+
+    public $incrementing = false;
 
     protected $casts = [
         'email_verified_at' => 'datetime',
